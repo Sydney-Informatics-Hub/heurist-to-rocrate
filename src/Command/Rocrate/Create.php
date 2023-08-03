@@ -223,7 +223,7 @@ class Create extends Command
                         $rangeInclude = ["@id" => "https://schema.org/DefinedTerm"];
                     }
 
-                    if (isset($rangeInclude)) {
+                    if (count($rangeInclude) > 0) {
                         $roCrateTermObject['rangeIncludes'] = $rangeInclude;
                     }
                 }
