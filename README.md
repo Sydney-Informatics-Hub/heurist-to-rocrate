@@ -20,3 +20,13 @@ At the same time, any output file can be output to the `output` folder.
 
 There are two global constants called `DATA_INPUT_DIR` and `DATA_OUTPUT_DIR`
 which can be easily used to get the path of these two directories.
+
+
+## Heurist to RO-craet
+
+Arg1 : input path
+Args2: output path
+Args3: database name (optional)  
+Args4: database description (optional)
+
+eg: php utility rocrate:create input output omaa omaa-desc 
