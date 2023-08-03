@@ -1,7 +1,7 @@
 <?php
 
 use Symfony\Component\Console\Application;
-use UtilityCli\Command\Example\Greetings;
+use UtilityCli\Command\Rocrate\Create;
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/global.php';
@@ -11,6 +11,6 @@ $app = new Application();
 $app->setName('Utility CLI Tools');
 
 // Add commands here...
-$app->add(new Greetings());
+$app->add(new Create());
 
 $app->run();
