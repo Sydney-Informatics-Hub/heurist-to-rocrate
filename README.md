@@ -22,11 +22,11 @@ There are two global constants called `DATA_INPUT_DIR` and `DATA_OUTPUT_DIR`
 which can be easily used to get the path of these two directories.
 
 
-## Heurist to RO-craet
+## Heurist to RO-Crate
 
-Arg1 : input path
-Args2: output path
-Args3: database name (optional)  
-Args4: database description (optional)
+Arg1 : input path   Should be a path to the directory contains the Heurist xml files. Could be relative or absolute path.  e.g : "./input" or "C:\username/input/"
+Args2: output path  Should be a file path contains the file name. Could be relative or absolute path.  e.g : "./output/metadata.json" or "C:\username/output/metadata.json"
+Args3: database name (optional)  . Named option. e.g : --name="OMAA"
+Args4: database description (optional) Named option e.g --description="Some description here..."
 
-eg: php utility rocrate:create input output omaa omaa-desc 
+eg: php utility rocrate:create "./input" "output/metadata.json" --name="OMAA" --description="Some Description"

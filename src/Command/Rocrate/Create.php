@@ -6,6 +6,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 use InvalidArgumentException;
 use Ramsey\Uuid\Uuid;
@@ -19,23 +20,27 @@ class Create extends Command
         $this->setDescription('Heurist XML to Ro-crate Json');
         $this->addArgument('inputPath', InputArgument::REQUIRED, 'Input path');
         $this->addArgument('outputPath', InputArgument::REQUIRED, 'Output path');
-        $this->addArgument('dbName', InputArgument::OPTIONAL, 'Database name');
-        $this->addArgument('dbDescription', InputArgument::OPTIONAL, 'Database description');
+        
+        // Adding options for dbName and dbDescription as optional
+        $this->addOption('name', null, InputOption::VALUE_OPTIONAL, 'Database Name', ''); // Default value is an empty string
+        $this->addOption('description', null, InputOption::VALUE_OPTIONAL, 'Database Description', ''); // Default value is an empty string
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $inputPath = $input->getArgument('inputPath');
         $outputPath = $input->getArgument('outputPath');
-        $databaseName = $input->getArgument('dbName') ?: "";;
-        $databaseDescription = $input->getArgument('dbDescription') ?: "";;
+
+        // Retrieve options for dbName and dbDescription
+        $databaseName = $input->getOption('name');
+        $databaseDescription = $input->getOption('description');
 
         $reservedTypes = ['CreativeWork', 'Dataset', 'File', 'DefinedTerm', 'DefinedTermSet', 'GeoCoordinates', 'GeoShape'];
         $idPrefix = "https://w3id.org/ro/terms/" . strtolower($databaseName) . "#";
 
         // Load the XML content into a SimpleXMLElement object
         $databaseStructure = $this->loadXmlFile($inputPath . '/Database_Structure.xml');
-        $recordsStructure = $this->loadXmlFile($inputPath . '/Record_Structure.xml');
+        $recordsStructure = $this->loadXmlFile($inputPath . '/' . $databaseStructure->HeuristDBName . '.xml');
 
         $customTerms = [];
         //Load record types
@@ -64,8 +69,7 @@ class Create extends Command
         $standardOutput['@graph'] = $graphData;
 
         $jsonData = json_encode($standardOutput, JSON_PRETTY_PRINT);
-        $filePath = "../../../../" . $outputPath . "/standardResult.json";
-        file_put_contents(__DIR__ . $filePath, $jsonData);
+        file_put_contents($outputPath, $jsonData);
 
         //Stats
         $output->writeln("Done!");
@@ -602,11 +606,24 @@ class Create extends Command
         return $display;
     }
 
-    //Load xml file.  remove unnecessary whitespaces, tabs, and new lines
+    //Load xml file.
     private function loadXmlFile($filePath) {
-       
+    
         $xmlContent = file_get_contents($filePath);
-        $xmlContent = preg_replace("/\t|\n/", "", $xmlContent);
-        return simplexml_load_string($xmlContent);
+        
+        // Enable user error handling for XML loading
+        libxml_use_internal_errors(true);
+        $xmlObject = simplexml_load_string($xmlContent);
+        
+        if (!$xmlObject) {
+            echo "Failed to load XML from $filePath. Errors:\n";
+            foreach (libxml_get_errors() as $error) {
+                echo "XML Error: " . $error->message . "\n";
+            }
+            libxml_clear_errors();  
+            return false;
+        }
+        
+        return $xmlObject;
     }
 }
