@@ -3,6 +3,8 @@
 use Symfony\Component\Console\Application;
 use UtilityCli\Command\Rocrate\Create;
 
+error_reporting(E_ALL ^ E_DEPRECATED);
+
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/global.php';
 
@@ -11,6 +13,7 @@ $app = new Application();
 $app->setName('Utility CLI Tools');
 
 // Add commands here...
+$app->add(new \UtilityCli\Command\Example\Test());
 $app->add(new Create());
 
 $app->run();
