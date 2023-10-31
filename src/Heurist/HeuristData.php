@@ -2,6 +2,8 @@
 
 namespace UtilityCli\Heurist;
 
+use UtilityCli\Log\Log;
+
 /**
  * Data source from Heurist.
  */
@@ -555,6 +557,19 @@ class HeuristData
     {
         $baseFieldID = $xml['id'];
         $field = $this->findFieldByRecordTypeAndBaseField($recordTypeID, $baseFieldID);
+        if (!isset($field)) {
+            // Some record from Heurist has ad-hoc values on base fields which don't have corresponding fields
+            // defined in the Heurist structure. To avoid the data loss, we create the field on the fly.
+            $baseField = $this->findBaseField($baseFieldID);
+            $recordType = $this->findRecordType($recordTypeID);
+            if (isset($baseField) && isset($recordType)) {
+                // Create the non-standard field.
+                $field = $this->createNonStandardField($recordType, $baseField);
+                $field->setRecordType($recordType);
+                $field->setBaseField($baseField);
+                $this->fields[$field->getID()] = $field;
+            }
+        }
         if (isset($field)) {
             switch ($field->getBaseField()->getType()) {
                 case BaseField::TYPE_TERM:
@@ -768,5 +783,24 @@ class HeuristData
             $fieldValue->setDay((string) $xml->day);
         }
         return $fieldValue;
+    }
+
+    /**
+     * Create a Field instance for a non-standard field (not defined in the structure file).
+     *
+     * @param RecordType $recordType
+     *   The record type instance.
+     * @param BaseField $baseField
+     *   The base field instance.
+     * @return Field
+     */
+    protected function createNonStandardField(RecordType $recordType, BaseField $baseField): Field
+    {
+        return new Field([
+            'rst_RecTypeID' => $recordType->getID(),
+            'rst_DetailTypeID' => $baseField->getID(),
+            'rst_DisplayName' => $baseField->getName(),
+            'rst_DisplayHelpText' => $baseField->getDescription(),
+        ]);
     }
 }
