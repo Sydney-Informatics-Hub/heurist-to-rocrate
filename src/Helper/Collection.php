@@ -50,4 +50,15 @@ class Collection
         }
         return $grouped;
     }
+
+    /**
+     * Check if an array is associative.
+     *
+     * @param array $array
+     * @return bool
+     */
+    public static function isAssociativeArray(array $array): bool
+    {
+        return array_keys($array) !== range(0, count($array) - 1);
+    }
 }
