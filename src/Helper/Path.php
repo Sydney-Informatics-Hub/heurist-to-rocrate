@@ -95,6 +95,17 @@ class Path
     }
 
     /**
+     * Get the file extension from a file path.
+     *
+     * @param string $filePath
+     * @return string|null
+     */
+    public static function getFileExtensionFromPath(string $filePath): ?string
+    {
+        return strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+    }
+
+    /**
      * Get the unique identifier from an URL.
      *
      * @param string $url The URL text.

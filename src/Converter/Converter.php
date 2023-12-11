@@ -80,6 +80,13 @@ class Converter
     protected array $stats;
 
     /**
+     * The list of filenames of Heurist uploaded files.
+     *
+     * @var string[]
+     */
+    protected array $uploadedFiles = [];
+
+    /**
      * Constructor.
      *
      * @param HeuristData $heuristData
@@ -512,6 +519,7 @@ class Converter
             $fileEntity = new Entity('File', $fieldValue->getUrl());
         } else {
             $fileEntity = new Entity('File', $fieldValue->getLocalName());
+            $this->uploadedFiles[] = $fieldValue->getLocalName();
         }
         if (!empty($fieldValue->getFileName())) {
             $fileEntity->set('name', $fieldValue->getFileName());
@@ -780,5 +788,15 @@ class Converter
     public function getStats(): array
     {
         return $this->stats;
+    }
+
+    /**
+     * Get the list of filenames of Heurist uploaded files.
+     *
+     * @return string[]
+     */
+    public function getUploadedFiles(): array
+    {
+        return $this->uploadedFiles;
     }
 }

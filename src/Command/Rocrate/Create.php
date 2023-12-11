@@ -12,6 +12,7 @@ use InvalidArgumentException;
 use Ramsey\Uuid\Uuid;
 use UtilityCli\Converter\Configuration;
 use UtilityCli\Converter\Converter;
+use UtilityCli\Helper\Path;
 use UtilityCli\Helper\XML;
 use UtilityCli\Heurist\HeuristData;
 use UtilityCli\Log\ConsoleChannel;
@@ -37,7 +38,7 @@ class Create extends Command
         $this->addArgument(
             'outputPath',
             InputArgument::REQUIRED,
-            'The path of the output RO-Crate metadata file'
+            'The path of the output RO-Crate file (.zip)'
         );
         
         // Adding options.
@@ -57,7 +58,7 @@ class Create extends Command
             'configuration',
             null,
             InputOption::VALUE_OPTIONAL,
-            'The path of the configuration RO-Crate'
+            'The path of the configuration RO-Crate (.json or .zip)'
         );
     }
 
@@ -122,7 +123,28 @@ class Create extends Command
         $configuration = null;
         if (!empty($configurationPath)) {
             Log::info('Loading configurations...');
-            $configJson = file_get_contents($configurationPath);
+            if (Path::getFileExtensionFromPath($configurationPath) === 'zip') {
+                $zip = new \ZipArchive();
+                if ($zip->open($configurationPath)) {
+                    // Check whether the zip file contains a file named "ro-crate-metadata.json".
+                    $metadataPath = 'ro-crate-metadata.json';
+                    if ($zip->locateName($metadataPath) !== false) {
+                        $configJson = $zip->getFromName($metadataPath);
+                    } else {
+                        Log::error("Unable to find the configuration file `{$metadataPath}` in the configuration zip file `{$configurationPath}`");
+                        return;
+                    }
+                } else {
+                    Log::error("Unable to open the configuration zip file `{$configurationPath}`");
+                    return;
+                }
+            } else if (Path::getFileExtensionFromPath($configurationPath) === 'json') {
+                $configJson = file_get_contents($configurationPath);
+            } else {
+                Log::error("Invalid configuration file extension. Please provide a .json or .zip file.");
+                return;
+            }
+
             $configData = json_decode($configJson, true);
             $configuration = new Configuration($configData);
             Log::info("Loaded configurations from `{$configurationPath}`");
@@ -143,7 +165,27 @@ class Create extends Command
             $metadata->toArray(),
             JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE
         );
-        file_put_contents($outputPath, $metadataJSON);
+        // Create the zip file.
+        $zip = new \ZipArchive();
+        if ($zip->open($outputPath, \ZipArchive::CREATE)) {
+            $zip->addFromString('ro-crate-metadata.json', $metadataJSON);
+            $uploadedFiles = $converter->getUploadedFiles();
+            // For each uploaded file, add it to the zip file.
+            foreach ($uploadedFiles as $uploadedFile) {
+                $filePath = "{$inputPath}/file_uploads/{$uploadedFile}";
+                if (file_exists($filePath)) {
+                    $zip->addFile($filePath, $uploadedFile);
+                } else {
+                    Log::warning("Unable to find the uploaded file `{$filePath}`");
+                }
+            }
+            $zip->close();
+        } else {
+            Log::error("Unable to create the RO-Crate file `{$outputPath}`");
+            return;
+        }
+
+        // file_put_contents($outputPath, $metadataJSON);
         Log::info("Saved the RO-Crate to `{$outputPath}`");
     }
 }

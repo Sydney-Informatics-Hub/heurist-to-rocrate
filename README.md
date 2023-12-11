@@ -5,7 +5,7 @@ This repository contains the command-line tools to archive a [Heurist](https://h
 
 ## System requirements
 
-- PHP 8.0+
+- PHP 8.0+ (with `zip` extension enabled).
 - Composer
 
 ## Installation
@@ -22,7 +22,9 @@ TBD
 
 ## TO-DO
 
-- [ ] Read the Heurist archive directly from the RO-Crate archive (`.zip`) file.
-- [ ] Read the configuration directly from the RO-Crate archive (`.zip`) file.
-- [ ] Output complete whole RO-Crate archive (`.zip`) file from the `rocrate:create` command, which includes the
+- [ ] Read the Heurist archive directly from the archive (`.zip`) file. (Currently, Heurist exports incomplete archives.
+  Some files need to be manually copied from the Heurist database. Will implement this once the Heurist team fixes 
+  this.)
+- [x] Read the configuration directly from the RO-Crate archive (`.zip`) file.
+- [x] Output complete whole RO-Crate archive (`.zip`) file from the `rocrate:create` command, which includes the
  uploaded files from Heurist as well.
